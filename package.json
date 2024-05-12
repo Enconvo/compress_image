@@ -1,0 +1,81 @@
+{
+  "$schema": "https://enconvo.com/schemas/extension.json",
+  "version": "0.0.001",
+  "author": "EnconvoAI",
+  "license": "MIT",
+  "categories": [
+    "Image Processing"
+  ],
+  "type": "module",
+  "name": "compress_image",
+  "title": "TinyPNG",
+  "description": "Compress the selected image files.",
+  "icon": "icon.png",
+  "minAppVersion": "1.4.9",
+  "commands": [
+    {
+      "name": "image_compress",
+      "title": "Image Compress",
+      "description": "Compress the selected image files.",
+      "icon": "icon.png",
+      "mode": "no-view",
+      "aiPlugin": false,
+      "params": [
+        {
+          "name": "contextFiles",
+          "description": "The files to be compressed, file path string separated by commas.",
+          "type": "string",
+          "required": true,
+          "default": ""
+        }
+      ],
+      "preferences": [
+        {
+          "title": "Quality",
+          "name": "quality",
+          "description": "Sets the quality of the image. The higher the value is, better the result will be,Allowed range is [0. 100]",
+          "type": "number",
+          "required": true,
+          "default": "80"
+        },
+        {
+          "title": "Destination Folder Path",
+          "name": "destinationFolderPath",
+          "description": "Set Destination Folder path. Specify an absolute path or a relative path from the target file.",
+          "type": "textfield",
+          "required": true,
+          "default": "./compressed-images"
+        },
+        {
+          "title": "Overwrite Original Image File",
+          "name": "overwrite",
+          "description": "Whether to overwrite the original image file.",
+          "type": "checkbox",
+          "label": "Overwrite Original Image File",
+          "default": false,
+          "required": false
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "@enconvo/api": "^0.1.128",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.33",
+    "eslint": "^8.57.0",
+    "prettier": "^2.8.8",
+    "tsup": "^7.2.0",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "lint:fix": "npm run lint --fix",
+    "format": "prettier --write \"**/*.ts\"",
+    "format:check": "prettier --list-different \"**/*.ts\"",
+    "build": "enconvo",
+    "dev": "enconvo --dev"
+  }
+}
