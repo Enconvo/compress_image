@@ -32,8 +32,8 @@ export default async function main(req: Request) {
         url: `file://${filePath}`
       },
     });
-
   })
+
 
   const requestId = uuid()
 
@@ -52,13 +52,20 @@ export default async function main(req: Request) {
     customId: requestId
   })
 
-
   const caesium = path.join(environment.assetsPath, isARM ? 'caesiumcltarm' : 'caesiumclt86')
 
-
   let outputDir = dirname(filePaths[0]);
+  console.log('overwrite', overwrite, filePaths.length, statSync(filePaths[0]).isDirectory())
   if (!overwrite) {
-    outputDir = path.join(outputDir, destinationFolderPath);
+    if (filePaths.length === 1) {
+      // 是否是dir
+      if (statSync(filePaths[0]).isDirectory()) {
+        outputDir = path.join(outputDir, destinationFolderPath, path.basename(filePaths[0]));
+      }
+    } else {
+      outputDir = path.join(outputDir, destinationFolderPath);
+    }
+
   } else {
     if (filePaths.length === 1) {
       // 是否是dir
@@ -67,8 +74,16 @@ export default async function main(req: Request) {
       }
     }
   }
+
+  const commandOutputDir = outputDir.replace(/ /g, '\\ ')
+  const commandFilePaths = filePaths.map((filePath) => {
+    return filePath.replace(/ /g, '\\ ')
+  })
+
+  console.log('outputDir', outputDir)
   const execSync = promisify(exec)
-  const command = `${caesium} -q ${quality} -RSO -o ${outputDir} ${filePaths.join(' ')}`
+  const command = `${caesium} -q ${quality} -RSO -o ${commandOutputDir} ${commandFilePaths.join(' ')}`
+  console.log('comman:', command)
   const { stdout: result, stderr } = await execSync(command)
   console.log('result', result)
 
@@ -82,9 +97,26 @@ export default async function main(req: Request) {
     ]
   }
   let imagePaths: string[] = []
+  if (overwrite) {
+    imagePaths = filePaths
+  } else {
 
-  filePaths.forEach((image) => {
-    imagePaths.push(image)
+    if (filePaths.length === 1 && statSync(filePaths[0]).isDirectory()) {
+      // 是否是dir
+      imagePaths = [outputDir]
+    } else {
+      // 把原来的文件路径替换成压缩后的文件路径
+      imagePaths = filePaths.map((filePath) => {
+        const basename = path.basename(filePath)
+        const finalePath = path.join(outputDir, basename)
+        console.log('basename', basename, finalePath)
+        return finalePath
+      })
+    }
+  }
+
+
+  imagePaths.forEach((image) => {
     message.content.push({
       type: "file",
       image_url: {

@@ -44,7 +44,7 @@
           "description": "Set Destination Folder path. Specify an absolute path or a relative path from the target file.",
           "type": "textfield",
           "required": true,
-          "default": "./compressed-images"
+          "default": "./enconvo-compressed-images"
         },
         {
           "title": "Overwrite Original Image File",
