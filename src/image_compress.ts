@@ -88,13 +88,19 @@ export default async function main(req: Request) {
 
   const message: ChatMessage = {
     role: "ai",
-    content: [
-      {
-        type: "text",
-        text: `🎉Compression successful 🎉  \n${result}`
-      }
-    ]
+    content: []
   }
+
+  const { runType } = options
+  if (runType !== 'flow') {
+    // @ts-ignore 
+    message.content.push({
+      type: "text",
+      text: `🎉Compression successful 🎉  \n${result}`
+    })
+  }
+
+
   let imagePaths: string[] = []
   if (overwrite) {
     imagePaths = filePaths
@@ -116,9 +122,10 @@ export default async function main(req: Request) {
 
 
   imagePaths.forEach((image) => {
+    // @ts-ignore 
     message.content.push({
       type: "file",
-      image_url: {
+      file_url: {
         url: `file://${image}`
       },
     });
