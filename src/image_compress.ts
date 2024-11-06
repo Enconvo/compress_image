@@ -14,7 +14,6 @@ export default async function main(req: Request) {
   const { quality, destinationFolderPath, overwrite } = options
 
   let filePaths: string[] = (options.contextFiles || [])
-
   if (filePaths.length === 0) {
     filePaths = await FinderUtil.getSelectedItems()
   }
@@ -29,15 +28,17 @@ export default async function main(req: Request) {
     images.push({
       type: "image_url",
       image_url: {
-        url: `file://${filePath}`
+        url: filePath
       },
     });
   })
 
 
-  const requestId = uuid()
+  // rm file://
+  filePaths = filePaths.map((filePath) => filePath.replace('file://', ''))
 
-  await Attachment.clearAttachments()
+
+  const requestId = uuid()
 
   const storeMessage: ChatMessage = {
     id: requestId,
@@ -57,11 +58,9 @@ export default async function main(req: Request) {
   let outputDir = dirname(filePaths[0]);
   console.log('overwrite', overwrite, filePaths.length, statSync(filePaths[0]).isDirectory())
   if (!overwrite) {
-    if (filePaths.length === 1) {
+    if (filePaths.length === 1 && statSync(filePaths[0]).isDirectory()) {
       // 是否是dir
-      if (statSync(filePaths[0]).isDirectory()) {
-        outputDir = path.join(outputDir, destinationFolderPath, path.basename(filePaths[0]));
-      }
+      outputDir = path.join(outputDir, destinationFolderPath, path.basename(filePaths[0]));
     } else {
       outputDir = path.join(outputDir, destinationFolderPath);
     }

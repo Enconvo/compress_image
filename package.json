@@ -1,6 +1,6 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
-  "version": "0.0.001",
+  "version": "0.0.002",
   "author": "EnconvoAI",
   "license": "MIT",
   "categories": [
@@ -8,7 +8,7 @@
   ],
   "type": "module",
   "name": "compress_image",
-  "title": "TinyPNG",
+  "title": "Image Compress",
   "description": "Compress the selected image files.",
   "icon": "icon.png",
   "minAppVersion": "1.4.9",
@@ -20,15 +20,15 @@
       "icon": "icon.png",
       "mode": "no-view",
       "aiPlugin": false,
-      "params": [
-        {
-          "name": "contextFiles",
-          "description": "The files to be compressed, file path string separated by commas.",
-          "type": "string",
-          "required": true,
-          "default": ""
+      "parameters": {
+        "context_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Context files"
         }
-      ],
+      },
       "preferences": [
         {
           "title": "Quality",
