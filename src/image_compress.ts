@@ -13,7 +13,7 @@ export default async function main(req: Request) {
   const { options } = await req.json();
   const { quality, destinationFolderPath, overwrite } = options
 
-  let filePaths: string[] = (options.contextFiles || [])
+  let filePaths: string[] = (options.context_files || [])
   if (filePaths.length === 0) {
     filePaths = await FinderUtil.getSelectedItems()
   }
@@ -34,6 +34,7 @@ export default async function main(req: Request) {
   })
 
 
+  console.log('filePaths', filePaths)
   // rm file://
   filePaths = filePaths.map((filePath) => filePath.replace('file://', ''))
 
