@@ -4,6 +4,8 @@ import { uuid, ActionProps, Action, Attachment, MessageContent, CoreDataChatHist
 import { promisify } from "util";
 import { exec } from "child_process";
 import { isARM } from "./lib/utils.ts";
+import * as shellQuote from 'shell-quote';
+import { escapePath } from "./utils.ts";
 
 const chatHistory = new CoreDataChatHistory()
 
@@ -17,6 +19,7 @@ export default async function main(req: Request) {
   if (filePaths.length === 0) {
     filePaths = await FinderUtil.getSelectedItems()
   }
+
 
   console.log('filePaths', filePaths)
   if (filePaths.length === 0) {
@@ -77,8 +80,9 @@ export default async function main(req: Request) {
 
   const commandOutputDir = outputDir.replace(/ /g, '\\ ')
   const commandFilePaths = filePaths.map((filePath) => {
-    return filePath.replace(/ /g, '\\ ')
+    return escapePath(filePath)
   })
+
 
   console.log('outputDir', outputDir)
   const execSync = promisify(exec)

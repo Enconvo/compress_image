@@ -36,7 +36,7 @@
           "description": "Sets the quality of the image. The higher the value is, better the result will be,Allowed range is [0. 100]",
           "type": "number",
           "required": true,
-          "default": "80"
+          "default": 80
         },
         {
           "title": "Destination Folder Path",
@@ -59,10 +59,12 @@
     }
   ],
   "dependencies": {
-    "@enconvo/api": "^0.1.128"
+    "@enconvo/api": "^0.1.128",
+    "shell-quote": "^1.8.1"
   },
   "devDependencies": {
     "@types/node": "^18.19.33",
+    "@types/shell-quote": "^1.7.5",
     "eslint": "^8.57.0",
     "prettier": "^2.8.8",
     "tsup": "^7.2.0",
