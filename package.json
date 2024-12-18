@@ -1,6 +1,6 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
-  "version": "0.0.003",
+  "version": "0.0.006",
   "author": "EnconvoAI",
   "license": "MIT",
   "categories": [
@@ -52,23 +52,21 @@
           "description": "Whether to overwrite the original image file.",
           "type": "checkbox",
           "label": "Overwrite Original Image File",
-          "default": false,
+          "default": true,
           "required": false
         }
       ]
     }
   ],
   "dependencies": {
-    "@enconvo/api": "^0.1.128",
-    "shell-quote": "^1.8.1"
+    "@enconvo/api": "^0.1.149"
   },
   "devDependencies": {
-    "@types/node": "^18.19.33",
-    "@types/shell-quote": "^1.7.5",
-    "eslint": "^8.57.0",
-    "prettier": "^2.8.8",
-    "tsup": "^7.2.0",
-    "typescript": "^5.4.5"
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
   },
   "scripts": {
     "lint": "eslint src",

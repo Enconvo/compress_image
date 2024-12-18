@@ -1,18 +1,15 @@
 import { statSync } from "fs";
 import path, { dirname } from "path";
-import { uuid, ActionProps, Action, Attachment, MessageContent, CoreDataChatHistory, ChatMessage, FinderUtil, environment } from '@enconvo/api'
+import { Action, FinderUtil, environment, RequestOptions, EnconvoResponse, ChatMessageContent, ResponseAction, AssistantMessage } from '@enconvo/api'
 import { promisify } from "util";
 import { exec } from "child_process";
 import { isARM } from "./lib/utils.ts";
-import * as shellQuote from 'shell-quote';
 import { escapePath } from "./utils.ts";
 
-const chatHistory = new CoreDataChatHistory()
 
+export default async function main(req: Request): Promise<EnconvoResponse> {
 
-export default async function main(req: Request) {
-
-  const { options } = await req.json();
+  const options: RequestOptions = await req.json();
   const { quality, destinationFolderPath, overwrite } = options
 
   let filePaths: string[] = (options.context_files || [])
@@ -20,13 +17,12 @@ export default async function main(req: Request) {
     filePaths = await FinderUtil.getSelectedItems()
   }
 
-
   console.log('filePaths', filePaths)
   if (filePaths.length === 0) {
     throw new Error('No files selected')
   }
 
-  let images: MessageContent[] = []
+  let images: ChatMessageContent[] = []
   filePaths.forEach((filePath) => {
     images.push({
       type: "image_url",
@@ -42,20 +38,6 @@ export default async function main(req: Request) {
   filePaths = filePaths.map((filePath) => filePath.replace('file://', ''))
 
 
-  const requestId = uuid()
-
-  const storeMessage: ChatMessage = {
-    id: requestId,
-    role: "human",
-    content: images
-  }
-
-  // res.context(storeMessage)
-
-  await chatHistory.addMultiModalMessage({
-    message: storeMessage,
-    customId: requestId
-  })
 
   const caesium = path.join(environment.assetsPath, isARM ? 'caesiumcltarm' : 'caesiumclt86')
 
@@ -63,7 +45,6 @@ export default async function main(req: Request) {
   console.log('overwrite', overwrite, filePaths.length, statSync(filePaths[0]).isDirectory())
   if (!overwrite) {
     if (filePaths.length === 1 && statSync(filePaths[0]).isDirectory()) {
-      // 是否是dir
       outputDir = path.join(outputDir, destinationFolderPath, path.basename(filePaths[0]));
     } else {
       outputDir = path.join(outputDir, destinationFolderPath);
@@ -71,7 +52,6 @@ export default async function main(req: Request) {
 
   } else {
     if (filePaths.length === 1) {
-      // 是否是dir
       if (statSync(filePaths[0]).isDirectory()) {
         outputDir = filePaths[0]
       }
@@ -91,19 +71,12 @@ export default async function main(req: Request) {
   const { stdout: result, stderr } = await execSync(command)
   console.log('result', result)
 
-  const message: ChatMessage = {
-    role: "ai",
-    content: []
-  }
 
-  const { runType } = options
-  if (runType !== 'flow') {
-    // @ts-ignore 
-    message.content.push({
-      type: "text",
-      text: `🎉Compression successful 🎉  \n${result}`
-    })
-  }
+  const messageContent: ChatMessageContent[] = []
+  messageContent.push({
+    type: "text",
+    text: `🎉Compression successful 🎉  \n${result}`
+  })
 
 
   let imagePaths: string[] = []
@@ -112,10 +85,8 @@ export default async function main(req: Request) {
   } else {
 
     if (filePaths.length === 1 && statSync(filePaths[0]).isDirectory()) {
-      // 是否是dir
       imagePaths = [outputDir]
     } else {
-      // 把原来的文件路径替换成压缩后的文件路径
       imagePaths = filePaths.map((filePath) => {
         const basename = path.basename(filePath)
         const finalePath = path.join(outputDir, basename)
@@ -127,8 +98,7 @@ export default async function main(req: Request) {
 
 
   imagePaths.forEach((image) => {
-    // @ts-ignore 
-    message.content.push({
+    messageContent.push({
       type: "file",
       file_url: {
         url: `file://${image}`
@@ -136,12 +106,8 @@ export default async function main(req: Request) {
     });
   });
 
-  await chatHistory.addLCMultiModalMessage({
-    message: message,
-    replyToId: requestId
-  })
 
-  const actions: ActionProps[] = [
+  const actions: ResponseAction[] = [
     Action.Paste({
       content: { files: imagePaths }
     }),
@@ -151,7 +117,7 @@ export default async function main(req: Request) {
     })
   ]
 
-  await Attachment.showAttachments([])
+  const message: AssistantMessage = new AssistantMessage(messageContent)
 
   return {
     type: "messages",
