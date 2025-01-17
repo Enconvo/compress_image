@@ -1,6 +1,6 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
-  "version": "0.0.007",
+  "version": "0.0.100",
   "author": "EnconvoAI",
   "license": "MIT",
   "categories": [
@@ -29,6 +29,14 @@
               "type": "string"
             },
             "description": "Context files"
+          },
+          "image_files": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "The image files to be compressed"
+            },
+            "description": "The image files to be compressed"
           }
         }
       },
@@ -62,7 +70,7 @@
     }
   ],
   "dependencies": {
-    "@enconvo/api": "^0.1.161"
+    "@enconvo/api": "^0.1.162"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

@@ -1,6 +1,6 @@
 import { statSync } from "fs";
 import path, { dirname } from "path";
-import { Action, FinderUtil, environment, RequestOptions, EnconvoResponse, ChatMessageContent, ResponseAction, AssistantMessage } from '@enconvo/api'
+import { Action, FinderUtil, environment, RequestOptions, EnconvoResponse, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil } from '@enconvo/api'
 import { promisify } from "util";
 import { exec } from "child_process";
 import { isARM } from "./lib/utils.ts";
@@ -16,50 +16,41 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
   if (filePaths.length === 0) {
     filePaths = await FinderUtil.getSelectedItems()
   }
+  let { images: imagesPaths } = FileUtil.categorizeFiles(filePaths)
 
-  console.log('filePaths', filePaths)
-  if (filePaths.length === 0) {
-    throw new Error('No files selected')
+  if (imagesPaths.length === 0) {
+    throw new Error('No images to compress')
   }
 
   let images: ChatMessageContent[] = []
-  filePaths.forEach((filePath) => {
-    images.push({
-      type: "image_url",
-      image_url: {
-        url: filePath
-      },
-    });
+  imagesPaths.forEach((filePath) => {
+    images.push(ChatMessageContent.imageUrl({ url: filePath }));
   })
 
-
-  console.log('filePaths', filePaths)
-  // rm file://
-  filePaths = filePaths.map((filePath) => filePath.replace('file://', ''))
-
+  imagesPaths = imagesPaths.map((filePath) => filePath.replace('file://', ''))
 
 
   const caesium = path.join(environment.assetsPath, isARM ? 'caesiumcltarm' : 'caesiumclt86')
 
-  let outputDir = dirname(filePaths[0]);
-  console.log('overwrite', overwrite, filePaths.length, statSync(filePaths[0]).isDirectory())
+  let outputDir = dirname(imagesPaths[0]);
+  console.log('overwrite', overwrite, imagesPaths.length, statSync(imagesPaths[0]).isDirectory())
   if (!overwrite) {
-    if (filePaths.length === 1 && statSync(filePaths[0]).isDirectory()) {
-      outputDir = path.join(outputDir, destinationFolderPath, path.basename(filePaths[0]));
+    if (imagesPaths.length === 1 && statSync(imagesPaths[0]).isDirectory()) {
+      outputDir = path.join(outputDir, destinationFolderPath, path.basename(imagesPaths[0]));
     } else {
       outputDir = path.join(outputDir, destinationFolderPath);
     }
 
   } else {
-    if (filePaths.length === 1) {
-      if (statSync(filePaths[0]).isDirectory()) {
-        outputDir = filePaths[0]
+    if (imagesPaths.length === 1) {
+      if (statSync(imagesPaths[0]).isDirectory()) {
+        outputDir = imagesPaths[0]
       }
     }
   }
 
   const commandOutputDir = outputDir.replace(/ /g, '\\ ')
-  const commandFilePaths = filePaths.map((filePath) => {
+  const commandFilePaths = imagesPaths.map((filePath) => {
     return escapePath(filePath)
   })
 
@@ -75,31 +66,25 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
   const messageContent: ChatMessageContent[] = []
 
 
-  let imagePaths: string[] = []
+  let outputImagePaths: string[] = []
   if (overwrite) {
-    imagePaths = filePaths
+    outputImagePaths = imagesPaths
   } else {
 
-    if (filePaths.length === 1 && statSync(filePaths[0]).isDirectory()) {
-      imagePaths = [outputDir]
+    if (imagesPaths.length === 1 && statSync(imagesPaths[0]).isDirectory()) {
+      outputImagePaths = [outputDir]
     } else {
-      imagePaths = filePaths.map((filePath) => {
+      outputImagePaths = imagesPaths.map((filePath) => {
         const basename = path.basename(filePath)
         const finalePath = path.join(outputDir, basename)
-        console.log('basename', basename, finalePath)
         return finalePath
       })
     }
   }
 
 
-  imagePaths.forEach((image) => {
-    messageContent.push({
-      type: "file",
-      file_url: {
-        url: `file://${image}`
-      },
-    });
+  outputImagePaths.forEach((image) => {
+    messageContent.push(ChatMessageContent.imageUrl({ url: `file://${image}` }));
   });
 
 
@@ -110,11 +95,11 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
 
   const actions: ResponseAction[] = [
     Action.Paste({
-      content: { files: imagePaths }
+      content: { files: outputImagePaths }
     }),
-    Action.ShowInFinder({ path: imagePaths[0] }),
+    Action.ShowInFinder({ path: outputImagePaths[0] }),
     Action.Copy({
-      content: { files: imagePaths }
+      content: { files: outputImagePaths }
     })
   ]
 
