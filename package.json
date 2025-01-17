@@ -1,6 +1,6 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
-  "version": "0.0.006",
+  "version": "0.0.007",
   "author": "EnconvoAI",
   "license": "MIT",
   "categories": [
@@ -21,12 +21,15 @@
       "mode": "no-view",
       "aiPlugin": false,
       "parameters": {
-        "context_files": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Context files"
+        "type": "object",
+        "properties": {
+          "context_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Context files"
+          }
         }
       },
       "preferences": [
@@ -59,7 +62,7 @@
     }
   ],
   "dependencies": {
-    "@enconvo/api": "^0.1.149"
+    "@enconvo/api": "^0.1.161"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

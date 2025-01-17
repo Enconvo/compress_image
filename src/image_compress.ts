@@ -73,10 +73,6 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
 
 
   const messageContent: ChatMessageContent[] = []
-  messageContent.push({
-    type: "text",
-    text: `🎉Compression successful 🎉  \n${result}`
-  })
 
 
   let imagePaths: string[] = []
@@ -106,6 +102,11 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
     });
   });
 
+
+  messageContent.push({
+    type: "text",
+    text: `🎉Compression successful 🎉  \n${result}`
+  })
 
   const actions: ResponseAction[] = [
     Action.Paste({
