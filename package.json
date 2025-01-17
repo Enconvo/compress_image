@@ -18,6 +18,7 @@
       "title": "Image Compress",
       "description": "Compress the selected image files.",
       "icon": "icon.png",
+      "commandType": "tool",
       "mode": "no-view",
       "aiPlugin": false,
       "parameters": {
