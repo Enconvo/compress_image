@@ -1,21 +1,29 @@
 import { statSync } from "fs";
 import path, { dirname } from "path";
-import { Action, FinderUtil, environment, RequestOptions, EnconvoResponse, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil } from '@enconvo/api'
+import { Action, FinderUtil, environment, RequestOptions, Response, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil } from '@enconvo/api'
 import { promisify } from "util";
 import { exec } from "child_process";
 import { isARM } from "./lib/utils.ts";
 import { escapePath } from "./utils.ts";
 
+interface ImageCompressOptions extends RequestOptions {
+  quality?: number;
+  destinationFolderPath?: string;
+  overwrite?: boolean;
+  image_files?: string[];
+}
 
-export default async function main(req: Request): Promise<EnconvoResponse> {
+export default async function main(req: Request): Promise<Response> {
 
-  const options: RequestOptions = await req.json();
-  const { quality, destinationFolderPath, overwrite } = options
+  const options: ImageCompressOptions = await req.json();
+  const { quality, overwrite, image_files, context_files } = options
 
-  let filePaths: string[] = (options.context_files || [])
+
+  let filePaths: string[] = (image_files || context_files || [])
   if (filePaths.length === 0) {
     filePaths = await FinderUtil.getSelectedItems()
   }
+
   let { images: imagesPaths } = FileUtil.categorizeFiles(filePaths)
 
   if (imagesPaths.length === 0) {
@@ -32,9 +40,10 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
 
   const caesium = path.join(environment.assetsPath, isARM ? 'caesiumcltarm' : 'caesiumclt86')
 
+
   let outputDir = dirname(imagesPaths[0]);
-  console.log('overwrite', overwrite, imagesPaths.length, statSync(imagesPaths[0]).isDirectory())
   if (!overwrite) {
+    const destinationFolderPath = options.destinationFolderPath || './enconvo-compressed-images'
     if (imagesPaths.length === 1 && statSync(imagesPaths[0]).isDirectory()) {
       outputDir = path.join(outputDir, destinationFolderPath, path.basename(imagesPaths[0]));
     } else {
@@ -55,12 +64,9 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
   })
 
 
-  console.log('outputDir', outputDir)
   const execSync = promisify(exec)
   const command = `${caesium} -q ${quality} -RSO -o ${commandOutputDir} ${commandFilePaths.join(' ')}`
-  console.log('comman:', command)
-  const { stdout: result, stderr } = await execSync(command)
-  console.log('result', result)
+  const { stdout: result } = await execSync(command)
 
 
   const messageContent: ChatMessageContent[] = []
