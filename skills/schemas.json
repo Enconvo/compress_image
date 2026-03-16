@@ -1,0 +1,43 @@
+[
+  {
+    "name": "image_compress",
+    "title": "Image Compress",
+    "description": "Compress images with adjustable quality using the Caesium engine. Supports batch compression, overwrite or output to a custom folder.",
+    "route": "compress_image/image_compress",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "context_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Context files"
+        },
+        "image_files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "The image files to be compressed"
+          },
+          "description": "The image files to be compressed"
+        },
+        "destinationFolderPath": {
+          "type": "string",
+          "description": "The destination folder path"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "description": "Whether to overwrite the original image file"
+        },
+        "quality": {
+          "type": "number",
+          "description": "The quality of the image. The higher the value is, better the result will be,Allowed range is [0. 100], default is 80"
+        }
+      },
+      "required": [
+        "image_files"
+      ]
+    }
+  }
+]
