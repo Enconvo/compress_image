@@ -16,3 +16,4 @@ To view full parameter details for a specific endpoint, run: `node skills/script
 | Endpoint | Description |
 |----------|-------------|
 | `compress_image/image_compress` | Compress images with adjustable quality using the Caesium engine. Supports batch compression, overwrite or output to a custom folder. |
+

@@ -3,7 +3,7 @@
     "name": "image_compress",
     "title": "Image Compress",
     "description": "Compress images with adjustable quality using the Caesium engine. Supports batch compression, overwrite or output to a custom folder.",
-    "route": "compress_image/image_compress",
+    "routePath": "compress_image/image_compress",
     "parameters": {
       "type": "object",
       "properties": {
