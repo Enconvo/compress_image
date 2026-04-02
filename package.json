@@ -7,8 +7,8 @@
     "Image Processing"
   ],
   "type": "module",
-  "name": "compress_image",
-  "title": "Image Compress",
+  "name": "image-utils",
+  "title": "Image Utils",
   "description": "Compress images with adjustable quality using the Caesium engine. Supports batch compression, overwrite or output to a custom folder.",
   "icon": "icon.png",
   "minAppVersion": "1.4.9",
@@ -51,7 +51,9 @@
             "description": "The quality of the image. The higher the value is, better the result will be,Allowed range is [0. 100], default is 80"
           }
         },
-        "required": ["image_files"]
+        "required": [
+          "image_files"
+        ]
       },
       "preferences": [
         {
@@ -86,10 +88,10 @@
     "@enconvo/api": "link:../../enconvo.nodejs/enconvo_api"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "^25.5.0",
     "eslint": "^9.17.0",
     "prettier": "^3.4.2",
-    "tsup": "^8.3.5",
+    "tsup": "^8.5.1",
     "typescript": "^5.7.2"
   },
   "scripts": {

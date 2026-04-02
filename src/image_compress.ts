@@ -1,18 +1,28 @@
 import { statSync, existsSync } from "fs";
 import path, { dirname } from "path";
-import { Action, FinderUtil, environment, RequestOptions, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil, Runtime, EnconvoResponse } from '@enconvo/api'
+import { Action, FinderUtil, RequestOptions, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil, Runtime, EnconvoResponse } from '@enconvo/api'
 import { promisify } from "util";
 import { exec } from "child_process";
-import { isARM } from "./lib/utils.ts";
+import { BinaryManager } from "./lib/binary_manager.ts";
 import { escapePath } from "./utils.ts";
 
+/** Image compression request parameters */
 interface ImageCompressOptions extends RequestOptions {
+  /** Compression quality 0-100 @default 80 */
   quality?: number;
+  /** Output folder path, supports absolute, relative, or ~ paths @default "./enconvo-compressed-images" */
   destinationFolderPath?: string;
+  /** Whether to overwrite the original image file @default true */
   overwrite?: boolean;
+  /** Image file paths to compress @required */
   image_files?: string[];
 }
 
+/**
+ * Compress images with adjustable quality using the Caesium engine
+ * @param {Request} request - Request object, body is {@link ImageCompressOptions}
+ * @returns Compressed image paths and compression summary
+ */
 export default async function main(req: Request): Promise<EnconvoResponse> {
 
   const options: ImageCompressOptions = await req.json();
@@ -23,7 +33,6 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
     return decodeURIComponent(filePath)
   })
 
-  console.log("compress image options", filePaths, overwrite, quality)
 
   if (filePaths.length === 0) {
     filePaths = await FinderUtil.getSelectedItems()
@@ -62,10 +71,9 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
     return { type: "messages", messages: [message], actions: [] }
   }
 
-  const caesium = path.join(environment.assetsPath, isARM ? 'caesiumcltarm' : 'caesiumclt86')
+  const caesium = await BinaryManager.ensureBinary('caesiumclt')
 
 
-  console.log("overwrite", overwrite, options.destinationFolderPath)
   let outputDir = dirname(imagesPaths[0]);
   if (!overwrite) {
     const destinationFolderPath = options.destinationFolderPath || './enconvo-compressed-images'
@@ -94,7 +102,7 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
 
 
   const execSync = promisify(exec)
-  const command = `${caesium} -q ${quality} -RSO -o ${commandOutputDir} ${commandFilePaths.join(' ')}`
+  const command = `${caesium} -q ${quality} -RS --overwrite all -o ${commandOutputDir} ${commandFilePaths.join(' ')}`
   const { stdout: result } = await execSync(command)
 
 
@@ -118,9 +126,7 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
   // Append non-existent file paths as-is
   outputImagePaths = [...outputImagePaths, ...nonExistentPaths]
 
-  console.log("outputImagePaths", Runtime.isAPIRunType(), outputImagePaths)
 
-  console.log(" isAPIRunType", Runtime.isAPIRunType())
 
   if (!Runtime.isInteractiveMode()) {
 
