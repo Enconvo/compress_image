@@ -1,6 +1,6 @@
 {
   "$schema": "https://enconvo.com/schemas/extension.json",
-  "version": "0.0.188",
+  "version": "0.0.195",
   "author": "EnconvoAI",
   "license": "MIT",
   "categories": [
@@ -55,6 +55,26 @@
           "quality": {
             "type": "number",
             "description": "The quality of the image. The higher the value is, better the result will be,Allowed range is [0. 100], default is 80"
+          },
+          "max_size": {
+            "type": "number",
+            "description": "Target maximum file size in bytes (e.g., 512000 for 500KB). When set, quality is ignored and the compressor will try to fit the image within this size."
+          },
+          "width": {
+            "type": "number",
+            "description": "Resize to specific width in pixels (maintains aspect ratio)"
+          },
+          "height": {
+            "type": "number",
+            "description": "Resize to specific height in pixels (maintains aspect ratio)"
+          },
+          "long_edge": {
+            "type": "number",
+            "description": "Resize by longest edge in pixels. Useful for mixed portrait/landscape batches — every image gets the same maximum dimension regardless of orientation."
+          },
+          "short_edge": {
+            "type": "number",
+            "description": "Resize by shortest edge in pixels (maintains aspect ratio)"
           }
         },
         "required": [

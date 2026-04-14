@@ -1,6 +1,6 @@
 import { statSync, existsSync } from "fs";
 import path, { dirname } from "path";
-import { Action, FinderUtil, RequestOptions, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil, Runtime, EnconvoResponse } from '@enconvo/api'
+import { Action, FinderUtil, RequestOptions, ChatMessageContent, ResponseAction, AssistantMessage, FileUtil, Runtime, EnconvoResponse, LogUtil } from '@enconvo/api'
 import { promisify } from "util";
 import { exec } from "child_process";
 import { BinaryManager } from "./lib/binary_manager.ts";
@@ -10,6 +10,16 @@ import { escapePath } from "./utils.ts";
 interface ImageCompressOptions extends RequestOptions {
   /** Compression quality 0-100 @default 80 */
   quality?: number;
+  /** Target maximum file size in bytes (e.g., 512000 for 500KB). When set, quality is ignored. */
+  max_size?: number;
+  /** Resize to specific width in pixels (maintains aspect ratio) */
+  width?: number;
+  /** Resize to specific height in pixels (maintains aspect ratio) */
+  height?: number;
+  /** Resize by longest edge in pixels (useful for mixed portrait/landscape batches) */
+  long_edge?: number;
+  /** Resize by shortest edge in pixels */
+  short_edge?: number;
   /** Output folder path, supports absolute, relative, or ~ paths @default "./enconvo-compressed-images" */
   destinationFolderPath?: string;
   /** Whether to overwrite the original image file @default true */
@@ -26,7 +36,7 @@ interface ImageCompressOptions extends RequestOptions {
 export default async function main(req: Request): Promise<EnconvoResponse> {
 
   const options: ImageCompressOptions = await req.json();
-  const { quality, overwrite, image_files, context_files } = options
+  const { quality, max_size, width, height, long_edge, short_edge, overwrite, image_files, context_files } = options
 
 
   let filePaths: string[] = (image_files || context_files || []).map((filePath) => {
@@ -102,7 +112,14 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
 
 
   const execSync = promisify(exec)
-  const command = `${caesium} -q ${quality} -RS --overwrite all -o ${commandOutputDir} ${commandFilePaths.join(' ')}`
+  const compressionFlag = max_size ? `--max-size ${max_size}` : `-q ${quality}`
+  const resizeFlags = [
+    width ? `--width ${width}` : '',
+    height ? `--height ${height}` : '',
+    long_edge ? `--long-edge ${long_edge}` : '',
+    short_edge ? `--short-edge ${short_edge}` : '',
+  ].filter(Boolean).join(' ')
+  const command = `${caesium} ${compressionFlag}${resizeFlags ? ` ${resizeFlags}` : ''} -RS --overwrite all -o ${commandOutputDir} ${commandFilePaths.join(' ')}`
   const { stdout: result } = await execSync(command)
 
 
@@ -128,10 +145,24 @@ export default async function main(req: Request): Promise<EnconvoResponse> {
 
 
 
-  if (!Runtime.isInteractiveMode()) {
+  const fileSizes = outputImagePaths.map((filePath) => {
+    try {
+      return existsSync(filePath) ? statSync(filePath).size : 0
+    } catch {
+      return 0
+    }
+  })
 
-    return EnconvoResponse.json({
+  if (!Runtime.isInteractiveMode()) {
+    // console.log('compressed result', {
+    //   paths: outputImagePaths,
+    //   sizes: fileSizes,
+    //   summary: `🎉${result}`
+    // })
+
+    return Response.json({
       paths: outputImagePaths,
+      sizes: fileSizes,
       summary: `🎉${result}`
     })
 
