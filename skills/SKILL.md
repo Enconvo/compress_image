@@ -4,7 +4,7 @@ description: >
   Compress images with adjustable quality using the Caesium engine. Supports batch compression, overwrite or output to a custom folder.
 metadata:
   author: EnconvoAI
-  version: "0.0.195"
+  version: "0.0.234"
 ---
 
 ## API Reference
